@@ -5,6 +5,9 @@ export default {
     content: ["./app/**/{**,.client,.server}/**/*.{js,jsx,ts,tsx}"],
   theme: {
 		extend: {
+			cursor: {
+        stalker: 'url(/assets/cursor.cur), pointer',
+      },
 			fontFamily: {
 				sans: ["Inter"]
 			},
