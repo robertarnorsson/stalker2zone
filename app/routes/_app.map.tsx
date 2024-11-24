@@ -5,6 +5,7 @@ export const meta: MetaFunction = () => {
   return [
     { title: "STALKER 2 - Interactive Map" },
     { name: "description", content: "The website to find info and a map over the STALKER 2 Zone" },
+    { name: "viewport", content: "user-scalable=0, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" }
   ];
 };
 
