@@ -1,10 +1,13 @@
 import { Map, MapBrowserEvent, View } from "ol";
+import GeoJSON from 'ol/format/GeoJSON.js';
 import { getCenter } from "ol/extent";
-import TileLayer from "ol/layer/Tile";
-import { XYZ } from "ol/source";
 import { createXYZ } from "ol/tilegrid";
+import Layer from 'ol/layer/WebGLTile.js';
+import Source from 'ol/source/ImageTile.js';
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { projection, tileExtent } from "~/lib/map";
+import { projection, tileExtent, zoneLabelStyle, zoneStyles } from "~/lib/map";
+import VectorLayer from "ol/layer/Vector";
+import VectorSource from "ol/source/Vector";
 
 interface MapContextType {
   map: Map | null;
@@ -19,9 +22,11 @@ export const MapProvider = ({ children }: { children: ReactNode }) => {
     if (typeof document !== 'undefined') {
       const mapInstance = new Map({
         layers: [
-          new TileLayer({
+          new Layer({
+            preload: 128,
+            cacheSize: 1024,
             extent: tileExtent,
-            source: new XYZ({
+            source: new Source({
               url: 'https://tiles.stalker2.zone/v1/{z}/{x}/{y}',
               tileGrid: createXYZ({
                 maxZoom: 7,
@@ -31,23 +36,38 @@ export const MapProvider = ({ children }: { children: ReactNode }) => {
               projection: projection,
               tileSize: 256,
             })
+          }),
+          new VectorLayer({
+            source: new VectorSource({
+              url: 'https://api.stalker2.zone/zones',
+              format: new GeoJSON({
+
+              }),
+            }),
+            style: function (feature) {
+              const label = feature.get('name').split(' ').join('\n');
+              zoneLabelStyle.getText()!.setText(label);
+              return zoneStyles;
+            },
+            updateWhileAnimating: true,
+            updateWhileInteracting: true,
           })
         ],
         view: new View({
           center: getCenter(tileExtent),
-          zoom: 3,
+          zoom: 4,
           projection: projection,
           enableRotation: false,
           maxZoom: 9
         }),
         controls: [],
-        maxTilesLoading: 64
+        maxTilesLoading: 128
       })
 
       setMap(mapInstance);
 
       mapInstance.on('click', (event: MapBrowserEvent<UIEvent>) => {
-        console.log(`${event.coordinate.at(0)}, ${event.coordinate.at(1)}`)
+        console.log(`${event.coordinate.at(0)?.toFixed(0)}, ${event.coordinate.at(1)?.toFixed(0)}`)
       })
 
       return () => {
